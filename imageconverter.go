@@ -1,14 +1,23 @@
 package image_converter
 
 import (
+	"errors"
 	"fmt"
 	"github.com/anthonynsimon/bild/imgio"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"golang.org/x/image/bmp"
+	"golang.org/x/image/tiff"
+	"golang.org/x/image/webp"
+	"image"
+	"image/gif"
+	"image/jpeg"
+	"image/png"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
 )
 
 func Serve(addr string) {
@@ -45,6 +54,66 @@ func saveFile(c *gin.Context, file *multipart.FileHeader) string {
 		panic("保存文件失败")
 	}
 
+	return path
+}
+
+func Encode(img image.Image, filename, Type string) error {
+	fw, _ := os.Create(filename)
+	defer fw.Close()
+
+	switch Type {
+	case "bmp":
+		bmp.Encode(fw, img)
+	case "gif":
+		gif.Encode(fw, img, nil)
+	case "jpeg", "jpg":
+		jpeg.Encode(fw, img, nil)
+	case "png":
+		png.Encode(fw, img)
+	case "tiff":
+		tiff.Encode(fw, img, nil)
+	default:
+		text := fmt.Sprintf("The type:[%s] not in support list", Type)
+		fmt.Println(text)
+	}
+
+	fmt.Printf("Convert %s success\n", filename)
+
+	return nil
+}
+
+func Decode(filename string) (img image.Image, err error) {
+	f, _ := os.Open(filename)
+	defer f.Close()
+
+	ext := filepath.Ext(filename)
+	switch ext {
+	case ".bmp":
+		img, err = bmp.Decode(f)
+	case ".gif":
+		img, err = gif.Decode(f)
+	case "jpeg", "jpg":
+		img, err = jpeg.Decode(f)
+	case ".png":
+		img, err = png.Decode(f)
+	case ".tiff":
+		img, err = tiff.Decode(f)
+	case ".webp":
+		img, err = webp.Decode(f)
+	default:
+		text := fmt.Sprintf("The type:[%s] not in support list", ext)
+		return nil, errors.New(text)
+	}
+
+	return img, nil
+}
+
+func RemovePathExt(path string) string {
+	for i := len(path) - 1; i >= 0 && !os.IsPathSeparator(path[i]); i-- {
+		if path[i] == '.' {
+			return path[:i]
+		}
+	}
 	return path
 }
 
