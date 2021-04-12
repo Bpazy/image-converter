@@ -3,7 +3,6 @@ package image_converter
 import (
 	"errors"
 	"fmt"
-	"github.com/anthonynsimon/bild/imgio"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"golang.org/x/image/bmp"
@@ -27,10 +26,17 @@ func Serve(addr string) {
 		file, _ := c.FormFile("file")
 		log.Printf("Upload file: %s\n", file.Filename)
 
+		targetType, ok := c.GetPostForm("type")
+		if !ok {
+			panic("请选择目标类型")
+		}
+
 		path := saveFile(c, file)
-		img, err := imgio.Open(path)
+		img, err := Decode(path)
 		PanicNonNil(err)
-		imgio.Save("output.jpg", img, imgio.JPEGEncoder(100))
+
+		err = Encode(img, "./output/"+RemovePathExt(filepath.Base(path))+"."+targetType, targetType)
+		PanicNonNil(err)
 
 		c.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
 	})
@@ -41,14 +47,14 @@ func Serve(addr string) {
 
 func saveFile(c *gin.Context, file *multipart.FileHeader) string {
 	// Make sure tmp directory exists
-	_, err := os.Open("tmp")
+	_, err := os.Open("upload")
 	if err != nil {
-		os.Mkdir("tmp", os.ModeDir)
+		_ = os.Mkdir("upload", os.ModeDir)
 	}
 
 	// Upload the file to specific dst.
 	id := uuid.New().String()
-	path := "./tmp/" + id + "." + file.Filename
+	path := "./upload/" + id + "." + file.Filename
 	err = c.SaveUploadedFile(file, path)
 	if err != nil {
 		panic("保存文件失败")
@@ -57,42 +63,38 @@ func saveFile(c *gin.Context, file *multipart.FileHeader) string {
 	return path
 }
 
-func Encode(img image.Image, filename, Type string) error {
-	fw, _ := os.Create(filename)
+func Encode(img image.Image, path, targetType string) error {
+	_ = os.MkdirAll(filepath.Dir(path), os.ModeDir)
+	fw, _ := os.Create(path)
 	defer fw.Close()
 
-	switch Type {
+	switch targetType {
 	case "bmp":
-		bmp.Encode(fw, img)
+		return bmp.Encode(fw, img)
 	case "gif":
-		gif.Encode(fw, img, nil)
+		return gif.Encode(fw, img, nil)
 	case "jpeg", "jpg":
-		jpeg.Encode(fw, img, nil)
+		return jpeg.Encode(fw, img, nil)
 	case "png":
-		png.Encode(fw, img)
+		return png.Encode(fw, img)
 	case "tiff":
-		tiff.Encode(fw, img, nil)
+		return tiff.Encode(fw, img, nil)
 	default:
-		text := fmt.Sprintf("The type:[%s] not in support list", Type)
-		fmt.Println(text)
+		return errors.New(fmt.Sprintf("The type:[%s] not in support list", targetType))
 	}
-
-	fmt.Printf("Convert %s success\n", filename)
-
-	return nil
 }
 
-func Decode(filename string) (img image.Image, err error) {
-	f, _ := os.Open(filename)
+func Decode(path string) (img image.Image, err error) {
+	f, _ := os.Open(path)
 	defer f.Close()
 
-	ext := filepath.Ext(filename)
+	ext := filepath.Ext(path)
 	switch ext {
 	case ".bmp":
 		img, err = bmp.Decode(f)
 	case ".gif":
 		img, err = gif.Decode(f)
-	case "jpeg", "jpg":
+	case ".jpeg", ".jpg":
 		img, err = jpeg.Decode(f)
 	case ".png":
 		img, err = png.Decode(f)
