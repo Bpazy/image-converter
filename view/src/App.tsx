@@ -1,15 +1,16 @@
 import React, {FC} from 'react';
 import './App.less';
-import {message, Upload} from 'antd';
+import {Layout, message, Upload} from 'antd';
 import {InboxOutlined} from '@ant-design/icons';
-import {UploadChangeParam} from "antd/lib/upload/interface";
+import {UploadChangeParam} from "antd/es/upload/interface";
+import {Content, Header} from "antd/es/layout/layout";
 
 const {Dragger} = Upload;
 
 const props = {
     name: 'file',
     multiple: true,
-    action: 'https://www.mocky.io/v2/5cc8019d300000980a055e76',
+    action: '/upload',
     onChange(info: UploadChangeParam) {
         const {status} = info.file;
         if (status !== 'uploading') {
@@ -23,16 +24,24 @@ const props = {
     },
 };
 const App: FC = () => (
-    <Dragger {...props}>
-        <p className="ant-upload-drag-icon">
-            <InboxOutlined/>
-        </p>
-        <p className="ant-upload-text">点击或拖拽文件到该区域上传</p>
-        <p className="ant-upload-hint">
-            Support for a single or bulk upload. Strictly prohibit from uploading company data or other
-            band files
-        </p>
-    </Dragger>
+    <Layout>
+        <Header>
+            <div className="logo"/>
+            <h1 className="page-title">在线图像文件转换器</h1>
+        </Header>
+        <Content style={{padding: '0 50px'}}>
+            <Dragger {...props}>
+                <p className="ant-upload-drag-icon">
+                    <InboxOutlined/>
+                </p>
+                <p className="ant-upload-text">点击或拖拽文件到该区域上传</p>
+                <p className="ant-upload-hint">
+                    Support for a single or bulk upload. Strictly prohibit from uploading company data or other
+                    band files
+                </p>
+            </Dragger>
+        </Content>
+    </Layout>
 );
 
 export default App;

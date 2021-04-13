@@ -28,7 +28,8 @@ func Serve(addr string) {
 
 		targetType, ok := c.GetPostForm("type")
 		if !ok {
-			panic("请选择目标类型")
+			c.String(http.StatusOK, "请选择目标类型")
+			return
 		}
 
 		path := saveFile(c, file)
