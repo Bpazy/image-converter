@@ -10,6 +10,7 @@ export class ConvertImage extends React.Component<any, any> {
         super(props);
         this.uploadAdd = React.createRef();
         this.state = {
+            imgFile: '',
             columns: [
                 {
                     title: '文件名',
@@ -66,13 +67,25 @@ export class ConvertImage extends React.Component<any, any> {
                     onClick={() => this.uploadAdd.current?.click()}>
                 选择文件
             </Button>
-            <input type="file" ref={this.uploadAdd} style={{display: 'none'}}/>
+            <input type="file" ref={this.uploadAdd} style={{display: 'none'}} onChange={e => this.chooseFile(e)}/>
 
             <Table columns={this.state.columns} dataSource={this.state.data} className="table" pagination={false}/>
 
-            <Button type="primary" icon={<RightOutlined/>} size="large" className="upload-button">
+            <Button type="primary" icon={<RightOutlined/>} size="large" className="upload-button"
+                    disabled={!this.state.imgFile}
+                    onClick={() => this.start()}>
                 开始转换
             </Button>
         </>;
+    }
+
+    private chooseFile(e: React.ChangeEvent<HTMLInputElement>) {
+        this.setState({
+            imgFile: e.target.files?.[0]
+        });
+    }
+
+    private start() {
+        console.log(this.state.imgFile);
     }
 }
