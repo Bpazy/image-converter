@@ -3,7 +3,6 @@ module github.com/Bpazy/imageconverter
 go 1.15
 
 require (
-	github.com/anthonynsimon/bild v0.13.0
 	github.com/gin-gonic/gin v1.7.1
 	github.com/go-playground/validator/v10 v10.5.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
