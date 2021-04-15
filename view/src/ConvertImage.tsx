@@ -3,7 +3,6 @@ import {Button, Select, Table, Tag} from "antd";
 import {RightOutlined, UploadOutlined} from "@ant-design/icons";
 import './ConvertImage.less';
 import {HttpClient} from "./Http";
-import qs from 'qs';
 
 export class ConvertImage extends React.Component<any, any> {
     private readonly uploadAdd: RefObject<HTMLInputElement>
@@ -88,10 +87,17 @@ export class ConvertImage extends React.Component<any, any> {
     }
 
     private async start() {
-        const res = await HttpClient.post("/upload", qs.stringify({
-            'type': 'jpg',
-            'file': this.state.imgFile
-        }));
+        const formData = new FormData();
+        formData.append("type", "jpg");
+        formData.append("file", this.state.imgFile);
+        const res = await HttpClient.post("/upload", formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
         console.log(res);
+        this.setState({
+            imgFile: ''
+        })
     }
 }
