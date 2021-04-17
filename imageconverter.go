@@ -36,7 +36,7 @@ func Serve(addr string) {
 		img, err := Decode(path)
 		PanicNonNil(err)
 
-		err = Encode(img, "./output/"+RemovePathExt(filepath.Base(path))+"."+targetType, targetType)
+		err = Encode(img, "./data/output/"+RemovePathExt(filepath.Base(path))+"."+targetType, targetType)
 		PanicNonNil(err)
 
 		c.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
@@ -55,7 +55,7 @@ func saveFile(c *gin.Context, file *multipart.FileHeader) string {
 
 	// Upload the file to specific dst.
 	id := uuid.New().String()
-	path := "./upload/" + id + "." + file.Filename
+	path := "./data/upload/" + id + "." + file.Filename
 	err = c.SaveUploadedFile(file, path)
 	if err != nil {
 		panic("保存文件失败")
